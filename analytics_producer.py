@@ -5,7 +5,7 @@ import random
 # Connect to Kafka
 producer = KafkaProducer(bootstrap_servers='localhost:9092')
 
-for i in range(30):
+for i in range(300):
     current_time = time.time()
     local_time = time.localtime(current_time)
 
@@ -17,7 +17,8 @@ for i in range(30):
     }
 
     producer.send('analytics', json.dumps(data).encode('utf-8'))
-    time.sleep(1)
+    print(f"Sent message {i+1}: {data}")
+    time.sleep(random.uniform(5.0, 10.0))  # Introduce varied delay to space out data
 
 # Flush the producer to ensure all messages are sent
 producer.flush()

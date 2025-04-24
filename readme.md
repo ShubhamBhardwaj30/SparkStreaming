@@ -51,6 +51,28 @@ This will:
 - Start Spark master and workers
 - Start the postgres DB and create the table
 
+
+4. **Create tables if they were not greated by the Init script using the folllowing on PGADMIN**
+
+```SQL
+CREATE TABLE IF NOT EXISTS stream_data (
+    user_id INTEGER,
+    event_type TEXT,
+    value DOUBLE PRECISION,
+    timestamp TEXT
+);
+
+CREATE TABLE IF NOT EXISTS public.aggregated_stream_data
+(
+    window_start timestamp without time zone,
+    window_end timestamp without time zone,
+    event_type text COLLATE pg_catalog."default",
+    total_value double precision,
+    average_value double precision,
+    event_count integer
+)
+```
+
 ## 📦 Job Submission
 
 The job is defined in the file:
