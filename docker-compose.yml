@@ -1,3 +1,4 @@
+
 version: "3.8"
 services:
   zookeeper:
@@ -142,9 +143,25 @@ services:
     networks:
       - analytics-net
 
+  pgadmin:
+    image: dpage/pgadmin4
+    container_name: pgadmin
+    environment:
+      PGADMIN_DEFAULT_EMAIL: admin@example.com
+      PGADMIN_DEFAULT_PASSWORD: admin
+    ports:
+      - "8081:80"
+    volumes:
+      - pgadmin_data:/var/lib/pgadmin
+    depends_on:
+      - postgres
+    networks:
+      - analytics-net
+        
 networks:
   analytics-net:
     driver: bridge
 
 volumes:
   pg_data:
+  pgadmin_data:
