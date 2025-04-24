@@ -127,6 +127,24 @@ services:
     networks:
       - analytics-net
 
+  postgres:
+    image: postgres:13
+    container_name: postgres
+    environment:
+      POSTGRES_DB: analytics_db
+      POSTGRES_USER: analytics_user
+      POSTGRES_PASSWORD: analytics_pass
+    ports:
+      - "5432:5432"
+    volumes:
+      - pg_data:/var/lib/postgresql/data
+      - ./db/init.sql:/docker-entrypoint-initdb.d/init.sql
+    networks:
+      - analytics-net
+
 networks:
   analytics-net:
     driver: bridge
+
+volumes:
+  pg_data:

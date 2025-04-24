@@ -5,7 +5,7 @@ This project sets up a simple analytics pipeline using Apache Spark, Kafka, and 
 - Kafka (broker + zookeeper)
 - Spark master and workers
 - Python job for Spark streaming from Kafka
-- Job submission container
+- Postgres DB
 
 ## 🚀 How to Start
 
@@ -30,6 +30,12 @@ Download the required Kafka JARs from Maven Central:
 curl -L -o jars/spark-sql-kafka-0-10_2.12-3.3.4.jar https://repo1.maven.org/maven2/org/apache/spark/spark-sql-kafka-0-10_2.12/3.3.4/spark-sql-kafka-0-10_2.12-3.3.4.jar
 
 curl -L -o jars/kafka-clients-3.3.2.jar https://repo1.maven.org/maven2/org/apache/kafka/kafka-clients/3.3.2/kafka-clients-3.3.2.jar
+
+curl -L -o jars/spark-token-provider-kafka-0-10_2.12-3.3.0.jar https://repo1.maven.org/maven2/org/apache/spark/spark-token-provider-kafka-0-10_2.12/3.3.0/spark-token-provider-kafka-0-10_2.12-3.3.0.jar
+
+curl -L -o jars/commons-pool2-2.11.1.jar https://repo1.maven.org/maven2/org/apache/commons/commons-pool2/2.11.1/commons-pool2-2.11.1.jar
+
+curl -L -o jars/postgresql-42.7.3.jar https://repo1.maven.org/maven2/org/postgresql/postgresql/42.7.3/postgresql-42.7.3.jar
 ```
 
 These JARs are required for Spark to read from Kafka.
@@ -37,13 +43,13 @@ These JARs are required for Spark to read from Kafka.
 3. **Start the Docker Compose environment**
 
 ```bash
-docker-compose up
+docker-compose down && docker-compose up --build -d
 ```
 
 This will:
 - Launch Zookeeper and Kafka
 - Start Spark master and workers
-- Run a one-time Spark job via `spark-job-submitter` after a short delay
+- Start the postgres DB and create the table
 
 ## 📦 Job Submission
 
@@ -60,7 +66,13 @@ If you want to submit additional jobs manually:
 ```bash
 docker exec -it spark-master spark-submit \
   --master spark://spark-master:7077 \
-  --jars /opt/spark/jars/spark-sql-kafka-0-10_2.12-3.3.4.jar,/opt/spark/jars/kafka-clients-3.3.2.jar \
+  --jars /opt/spark/jars/spark-sql-kafka-0-10_2.12-3.3.0.jar,\
+/opt/spark/jars/kafka-clients-2.8.0.jar,\
+/opt/spark/jars/postgresql-42.7.3.jar,\
+/opt/spark/jars/spark-token-provider-kafka-0-10_2.12-3.3.0.jar,\
+/opt/spark/jars/commons-pool2-2.11.1.jar \
+  --conf "spark.driver.extraClassPath=/opt/spark/jars/*" \
+  --conf "spark.executor.extraClassPath=/opt/spark/jars/*" \
   /opt/spark-apps/spark_stream_analyzer.py
 ```
 
@@ -72,3 +84,10 @@ You can verify Kafka messages are flowing by inspecting the console output of th
 
 - Spark startup and job submission is handled via `setup.sh`
 - Python Kafka dependencies are installed automatically inside the Spark containers
+
+## 🧪 Connect to PG
+bash
+```
+docker exec -it postgres psql -U analytics_user -d analytics_db
+```
+Run your select query to see the data
