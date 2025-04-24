@@ -46,12 +46,14 @@ services:
       - "7077:7077"
     volumes:
        - ./apps:/opt/spark-apps
+       - ./apps/setup.sh:/opt/spark-apps/setup.sh
        - ./data:/opt/spark-data
        - ./jars:/opt/spark/jars
     environment:
       - SPARK_LOCAL_IP=spark-master
       - SPARK_WORKLOAD=master
       - SPARK_EXTRA_CLASSPATH=/opt/spark/jars/*
+    command: ["bash", "-c", "/opt/spark-apps/setup.sh"]
     networks:
       - analytics-net
   spark-worker-a:
@@ -63,8 +65,11 @@ services:
       - "7005:7000"
     depends_on:
       - spark-master
-    command: >
-      bash -c "/opt/bitnami/spark/bin/spark-class org.apache.spark.deploy.worker.Worker spark://spark-master:7077"
+    volumes:
+       - ./apps:/opt/spark-apps
+       - ./apps/setup.sh:/opt/spark-apps/setup.sh
+       - ./data:/opt/spark-data
+       - ./jars:/opt/spark/jars
     environment:
       - SPARK_MASTER=spark://spark-master:7077
       - SPARK_WORKER_CORES=1
@@ -74,10 +79,7 @@ services:
       - SPARK_WORKLOAD=worker
       - SPARK_LOCAL_IP=spark-worker-a
       - SPARK_EXTRA_CLASSPATH=/opt/spark/jars/*
-    volumes:
-       - ./apps:/opt/spark-apps
-       - ./data:/opt/spark-data
-       - ./jars:/opt/spark/jars
+    command: ["bash", "-c", "/opt/spark-apps/setup.sh"]
     networks:
       - analytics-net
   spark-worker-b:
@@ -89,8 +91,11 @@ services:
       - "7001:7000"
     depends_on:
       - spark-master
-    command: >
-      bash -c "/opt/bitnami/spark/bin/spark-class org.apache.spark.deploy.worker.Worker spark://spark-master:7077"
+    volumes:
+        - ./apps:/opt/spark-apps
+        - ./apps/setup.sh:/opt/spark-apps/setup.sh
+        - ./data:/opt/spark-data
+        - ./jars:/opt/spark/jars
     environment:
       - SPARK_MASTER=spark://spark-master:7077
       - SPARK_WORKER_CORES=1
@@ -100,10 +105,7 @@ services:
       - SPARK_WORKLOAD=worker
       - SPARK_LOCAL_IP=spark-worker-b
       - SPARK_EXTRA_CLASSPATH=/opt/spark/jars/*
-    volumes:
-        - ./apps:/opt/spark-apps
-        - ./data:/opt/spark-data
-        - ./jars:/opt/spark/jars
+    command: ["bash", "-c", "/opt/spark-apps/setup.sh"]
     networks:
       - analytics-net
 
