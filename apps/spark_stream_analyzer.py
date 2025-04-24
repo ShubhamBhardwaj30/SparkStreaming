@@ -1,5 +1,6 @@
 from pyspark.sql import SparkSession
-from pyspark.sql.functions import col
+from pyspark.sql.functions import col, from_json
+from pyspark.sql.types import StructType, StructField, StringType, IntegerType, DoubleType
 
 def main():
     # Initialize Spark session for Docker-based Spark cluster
@@ -18,9 +19,19 @@ def main():
         .option("startingOffsets", "latest") \
         .load()
 
+    # Define schema for the synthetic JSON structure
+    schema = StructType([
+        StructField("user_id", IntegerType(), True),
+        StructField("event_type", StringType(), True),
+        StructField("value", DoubleType(), True),
+        StructField("timestamp", StringType(), True)
+    ])
+
     # Process the data
     data = kafka_stream \
-        .selectExpr("CAST(key AS STRING)", "CAST(value AS STRING)")
+        .selectExpr("CAST(value AS STRING) as json_str") \
+        .select(from_json(col("json_str"), schema).alias("data")) \
+        .select("data.*")
 
     # Write the processed data to PostgreSQL
     data.writeStream \
