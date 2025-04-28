@@ -6,6 +6,8 @@ This project sets up a simple analytics pipeline using Apache Spark, Kafka, and 
 - Spark master and workers
 - Python job for Spark streaming from Kafka
 - Postgres DB
+- Pgadmin
+- Jupyter lab
 
 ## 🚀 How to Start
 
@@ -81,9 +83,9 @@ The job is defined in the file:
 apps/spark_stream_analyzer.py
 ```
 
-The `spark-job-submitter` container waits 30 seconds and then runs this job using `spark-submit`, with the necessary JARs mounted and classpath configured.
 
-If you want to submit additional jobs manually:
+
+Submit the job manually to spak cluster:
 
 ```bash
 docker exec -it spark-master spark-submit \
@@ -102,14 +104,89 @@ docker exec -it spark-master spark-submit \
 
 You can verify Kafka messages are flowing by inspecting the console output of the job or producing messages manually using Kafka CLI or a Python script.
 
+## 🛠️ Synthetic Data Generation and Testing
+
+You can use the provided helper scripts to simulate data production and consumption for testing.
+
+### Produce Synthetic Data
+
+Run the producer script to generate random events and send them to the `analytics` topic:
+
+```bash
+python helper/analytics_producer.py
+```
+
+This will create and send 300 random messages spaced out with random delays.
+
+### Consume and Verify Messages
+
+Run the consumer script to read and display messages from the `analytics` topic:
+
+```bash
+python helper/analytics_consumer.py
+```
+
+This will print each incoming message to the console, verifying that data is being produced and available on Kafka.
+
+
 ## 🛠 Configuration
 
 - Spark startup and job submission is handled via `setup.sh`
 - Python Kafka dependencies are installed automatically inside the Spark containers
 
-## 🧪 Connect to PG
-bash
-```
+## 📈 Viewing Processed Data
+
+After submitting the Spark job, you can view the results:
+
+- Raw streaming events are stored in the `stream_data` table.
+- Aggregated results (windowed aggregation) are stored in the `aggregated_stream_data` table.
+
+
+To connect to Postgres and query the tables:
+
+```bash
 docker exec -it postgres psql -U analytics_user -d analytics_db
 ```
-Run your select query to see the data
+
+Example queries:
+
+```sql
+SELECT * FROM stream_data LIMIT 10;
+SELECT * FROM aggregated_stream_data LIMIT 10;
+```
+
+### Viewing Data Using pgAdmin
+
+You can also use **pgAdmin** to connect to the database and view the tables visually.
+
+Connection details for pgAdmin:
+
+- Host: `postgres`
+- Port: `5432`
+- Username: `analytics_user`
+- Password: `analytics_pass`
+- Database: `analytics_db`
+
+Once connected, navigate to the `stream_data` and `aggregated_stream_data` tables to view the raw and aggregated streaming data.
+
+## 🔌 Ports for Localhost Connections
+
+These are the default ports mapped by Docker Compose for local access:
+
+- **Kafka Broker:**  
+  - `localhost:9092` (for client connections)
+  - `localhost:29092` (for internal Docker connections)
+- **Zookeeper:**  
+  - `localhost:22181`
+- **Spark Master UI:**  
+  - [http://localhost:9090](http://localhost:9090)
+- **Spark Worker A UI:**  
+  - [http://localhost:9091](http://localhost:9091)
+- **Spark Worker B UI:**  
+  - [http://localhost:9093](http://localhost:9093)
+- **JupyterLab:**  
+  - [http://localhost:8888](http://localhost:8888)
+- **Postgres:**  
+  - `localhost:5432`
+- **pgAdmin:**  
+  - [http://localhost:8081](http://localhost:8081)
